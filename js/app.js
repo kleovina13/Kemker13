@@ -4407,7 +4407,7 @@ async function loadJalan() {
         // ✅ DIPERBAIKI: nama file tanpa spasi
         const response =
             await fetch(
-                "data/jalan.geojson"
+                "data/alan.geojson"
             );
 
 
