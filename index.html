@@ -1,0 +1,2100 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SIDODADI LAND GIS | Pemetaan Bidang Tanah</title>
+
+    <!-- GOOGLE FONT -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- FONT AWESOME -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+
+    <style>
+        /* =========================================================
+           RESET
+        ========================================================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: "Inter", sans-serif;
+            background: #06111f;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* =========================================================
+           VARIABLES
+        ========================================================= */
+
+        :root {
+            --green: #10b981;
+            --green-light: #34d399;
+            --green-dark: #047857;
+            --blue: #38bdf8;
+            --bg: #06111f;
+            --bg2: #091827;
+            --card: rgba(255,255,255,0.045);
+            --border: rgba(255,255,255,0.09);
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+
+        /* =========================================================
+           BACKGROUND
+        ========================================================= */
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: -2;
+            background:
+                radial-gradient(
+                    circle at 15% 15%,
+                    rgba(16,185,129,0.14),
+                    transparent 28%
+                ),
+                radial-gradient(
+                    circle at 85% 30%,
+                    rgba(14,165,233,0.12),
+                    transparent 28%
+                ),
+                radial-gradient(
+                    circle at 50% 90%,
+                    rgba(16,185,129,0.08),
+                    transparent 30%
+                ),
+                linear-gradient(
+                    135deg,
+                    #040b14,
+                    #071827 50%,
+                    #06111f
+                );
+        }
+
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            opacity: .18;
+            background-image:
+                linear-gradient(
+                    rgba(255,255,255,.04) 1px,
+                    transparent 1px
+                ),
+                linear-gradient(
+                    90deg,
+                    rgba(255,255,255,.04) 1px,
+                    transparent 1px
+                );
+            background-size: 60px 60px;
+            mask-image: linear-gradient(
+                to bottom,
+                black,
+                transparent 90%
+            );
+        }
+
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .orb.one {
+            width: 280px;
+            height: 280px;
+            background: rgba(16,185,129,.12);
+            top: 100px;
+            right: -100px;
+        }
+
+        .orb.two {
+            width: 300px;
+            height: 300px;
+            background: rgba(14,165,233,.09);
+            bottom: 50px;
+            left: -130px;
+        }
+
+        /* =========================================================
+           NAVBAR
+        ========================================================= */
+
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+
+            height: 76px;
+            padding: 0 7%;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            background: rgba(4,12,22,.78);
+            border-bottom: 1px solid rgba(255,255,255,.07);
+
+            backdrop-filter: blur(20px);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 43px;
+            height: 43px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 13px;
+
+            background: linear-gradient(
+                135deg,
+                #10b981,
+                #047857
+            );
+
+            box-shadow:
+                0 10px 30px rgba(16,185,129,.25);
+        }
+
+        .brand-icon i {
+            font-size: 19px;
+        }
+
+        .brand-text strong {
+            display: block;
+            font-size: 14px;
+            letter-spacing: .5px;
+        }
+
+        .brand-text span {
+            display: block;
+            margin-top: 3px;
+            color: #6ee7b7;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 26px;
+        }
+
+        .nav-menu a {
+            color: #94a3b8;
+            font-size: 12px;
+            font-weight: 600;
+            transition: .25s;
+        }
+
+        .nav-menu a:hover {
+            color: white;
+        }
+
+        .nav-webgis {
+            display: flex !important;
+            align-items: center;
+            gap: 8px;
+
+            padding: 11px 17px;
+
+            border: 1px solid rgba(16,185,129,.35);
+            border-radius: 11px;
+
+            background: rgba(16,185,129,.10);
+            color: #6ee7b7 !important;
+        }
+
+        .nav-webgis:hover {
+            background: #10b981;
+            color: white !important;
+            transform: translateY(-2px);
+        }
+
+        /* =========================================================
+           HERO
+        ========================================================= */
+
+        .hero {
+            width: 86%;
+            max-width: 1250px;
+            min-height: calc(100vh - 76px);
+
+            margin: auto;
+
+            display: grid;
+            grid-template-columns: 1.05fr .95fr;
+            align-items: center;
+
+            gap: 65px;
+            padding: 70px 0;
+        }
+
+        .hero-content {
+            animation: fadeUp .8s ease both;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(25px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+
+            padding: 9px 14px;
+
+            border: 1px solid rgba(52,211,153,.25);
+            border-radius: 30px;
+
+            background: rgba(16,185,129,.08);
+
+            color: #6ee7b7;
+
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+
+            margin-bottom: 23px;
+        }
+
+        .badge i {
+            font-size: 11px;
+        }
+
+        .hero h1 {
+            font-size: clamp(42px, 5.2vw, 72px);
+            line-height: 1.02;
+            letter-spacing: -3.5px;
+            margin-bottom: 25px;
+        }
+
+        .hero h1 .green {
+            display: block;
+            color: var(--green-light);
+        }
+
+        .hero-description {
+            max-width: 650px;
+
+            color: #94a3b8;
+
+            font-size: 15px;
+            line-height: 1.85;
+
+            margin-bottom: 30px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+
+            padding: 14px 20px;
+
+            border-radius: 12px;
+
+            font-size: 12px;
+            font-weight: 700;
+
+            transition: .25s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(
+                135deg,
+                #10b981,
+                #047857
+            );
+
+            color: white;
+
+            box-shadow:
+                0 12px 35px rgba(16,185,129,.22);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow:
+                0 18px 40px rgba(16,185,129,.32);
+        }
+
+        .btn-secondary {
+            border: 1px solid rgba(255,255,255,.10);
+            background: rgba(255,255,255,.04);
+            color: #cbd5e1;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,.08);
+            color: white;
+        }
+
+        /* =========================================================
+           HERO MAP
+        ========================================================= */
+
+        .hero-map {
+            position: relative;
+            height: 470px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            animation: fadeMap 1s ease .15s both;
+        }
+
+        @keyframes fadeMap {
+            from {
+                opacity: 0;
+                transform: scale(.94);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .map-card {
+            width: 100%;
+            max-width: 500px;
+            height: 360px;
+
+            position: relative;
+            overflow: hidden;
+
+            border-radius: 28px;
+
+            border: 1px solid rgba(255,255,255,.11);
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #102c3b,
+                    #071622
+                );
+
+            box-shadow:
+                0 40px 100px rgba(0,0,0,.42);
+
+            transform:
+                perspective(1200px)
+                rotateY(-7deg)
+                rotateX(3deg);
+        }
+
+        .map-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+
+            background:
+                radial-gradient(
+                    circle at 50% 40%,
+                    rgba(16,185,129,.16),
+                    transparent 45%
+                );
+        }
+
+        .map-grid {
+            position: absolute;
+            inset: 0;
+
+            opacity: .20;
+
+            background-image:
+                linear-gradient(
+                    rgba(255,255,255,.18) 1px,
+                    transparent 1px
+                ),
+                linear-gradient(
+                    90deg,
+                    rgba(255,255,255,.18) 1px,
+                    transparent 1px
+                );
+
+            background-size: 38px 38px;
+        }
+
+        .road {
+            position: absolute;
+
+            width: 125%;
+            height: 18px;
+
+            left: -10%;
+            top: 48%;
+
+            background: rgba(255,255,255,.12);
+
+            transform: rotate(-25deg);
+        }
+
+        .road::after {
+            content: "";
+
+            position: absolute;
+
+            left: 0;
+            right: 0;
+            top: 7px;
+
+            height: 3px;
+
+            background: rgba(255,255,255,.17);
+        }
+
+        .parcel {
+            position: absolute;
+
+            border: 2px solid rgba(52,211,153,.75);
+
+            background: rgba(16,185,129,.14);
+
+            box-shadow:
+                inset 0 0 25px rgba(16,185,129,.06);
+        }
+
+        .p1 {
+            width: 125px;
+            height: 88px;
+            left: 45px;
+            top: 60px;
+            transform: rotate(-8deg);
+        }
+
+        .p2 {
+            width: 135px;
+            height: 105px;
+            left: 180px;
+            top: 55px;
+            transform: rotate(7deg);
+        }
+
+        .p3 {
+            width: 125px;
+            height: 100px;
+            left: 90px;
+            top: 165px;
+            transform: rotate(3deg);
+        }
+
+        .p4 {
+            width: 130px;
+            height: 90px;
+            left: 225px;
+            top: 180px;
+            transform: rotate(-9deg);
+        }
+
+        .p5 {
+            width: 85px;
+            height: 70px;
+            left: 350px;
+            top: 110px;
+            transform: rotate(8deg);
+        }
+
+        .pin {
+            position: absolute;
+
+            width: 46px;
+            height: 46px;
+
+            left: 48%;
+            top: 45%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 50% 50% 50% 0;
+
+            background: #10b981;
+
+            transform: rotate(-45deg);
+
+            box-shadow:
+                0 0 0 9px rgba(16,185,129,.13),
+                0 0 35px rgba(16,185,129,.3);
+        }
+
+        .pin i {
+            transform: rotate(45deg);
+            color: white;
+        }
+
+        .map-top {
+            position: absolute;
+            top: 18px;
+            left: 18px;
+            right: 18px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .live {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+
+            padding: 7px 10px;
+
+            border-radius: 8px;
+
+            background: rgba(0,0,0,.35);
+
+            color: #a7f3d0;
+
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .live-dot {
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+
+            background: #34d399;
+
+            box-shadow: 0 0 10px #34d399;
+        }
+
+        .north {
+            width: 34px;
+            height: 34px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 50%;
+
+            background: rgba(0,0,0,.3);
+
+            color: #cbd5e1;
+
+            font-size: 11px;
+        }
+
+        .map-bottom {
+            position: absolute;
+
+            left: 20px;
+            right: 20px;
+            bottom: 18px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .location-label {
+            padding: 10px 13px;
+
+            border-radius: 10px;
+
+            background: rgba(2,10,18,.78);
+            border: 1px solid rgba(255,255,255,.08);
+
+            backdrop-filter: blur(10px);
+
+            color: #cbd5e1;
+
+            font-size: 10px;
+        }
+
+        .scale {
+            color: #94a3b8;
+            font-size: 9px;
+        }
+
+        /* =========================================================
+           QUICK INFO
+        ========================================================= */
+
+        .quick-info {
+            width: 86%;
+            max-width: 1250px;
+
+            margin: -20px auto 0;
+
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+
+            gap: 15px;
+
+            position: relative;
+            z-index: 5;
+        }
+
+        .quick-card {
+            padding: 22px;
+
+            border: 1px solid var(--border);
+            border-radius: 18px;
+
+            background: rgba(255,255,255,.035);
+
+            backdrop-filter: blur(14px);
+
+            transition: .25s;
+        }
+
+        .quick-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(52,211,153,.25);
+        }
+
+        .quick-icon {
+            width: 40px;
+            height: 40px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 11px;
+
+            background: rgba(16,185,129,.10);
+
+            color: #34d399;
+
+            margin-bottom: 13px;
+        }
+
+        .quick-card h3 {
+            font-size: 14px;
+            margin-bottom: 7px;
+        }
+
+        .quick-card p {
+            color: #7f8da1;
+            font-size: 11px;
+            line-height: 1.7;
+        }
+
+        /* =========================================================
+           SECTION
+        ========================================================= */
+
+        .section {
+            width: 86%;
+            max-width: 1250px;
+
+            margin: auto;
+
+            padding: 115px 0 60px;
+        }
+
+        .section-label {
+            display: block;
+
+            margin-bottom: 11px;
+
+            color: #34d399;
+
+            font-size: 10px;
+            font-weight: 800;
+
+            letter-spacing: 2px;
+        }
+
+        .section-title {
+            font-size: 36px;
+            letter-spacing: -1.5px;
+
+            margin-bottom: 15px;
+        }
+
+        .section-description {
+            max-width: 760px;
+
+            color: #8997a9;
+
+            font-size: 13px;
+            line-height: 1.9;
+        }
+
+        /* =========================================================
+           ABOUT
+        ========================================================= */
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+
+            gap: 18px;
+
+            margin-top: 38px;
+        }
+
+        .about-card {
+            padding: 30px;
+
+            border: 1px solid var(--border);
+            border-radius: 20px;
+
+            background: rgba(255,255,255,.035);
+
+            transition: .25s;
+        }
+
+        .about-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(52,211,153,.22);
+        }
+
+        .about-card h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            font-size: 16px;
+
+            margin-bottom: 13px;
+        }
+
+        .about-card h3 i {
+            color: #34d399;
+        }
+
+        .about-card p {
+            color: #8997a9;
+
+            font-size: 12px;
+            line-height: 1.9;
+        }
+
+        .about-list {
+            list-style: none;
+        }
+
+        .about-list li {
+            display: flex;
+            gap: 10px;
+
+            margin-bottom: 13px;
+
+            color: #aab7c8;
+
+            font-size: 12px;
+        }
+
+        .about-list i {
+            color: #34d399;
+            margin-top: 2px;
+        }
+
+        /* =========================================================
+           TEAM SECTION
+        ========================================================= */
+
+        .team-section {
+            width: 100%;
+
+            padding: 105px 7%;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    transparent,
+                    rgba(0,0,0,.15)
+                );
+
+            border-top: 1px solid rgba(255,255,255,.05);
+            border-bottom: 1px solid rgba(255,255,255,.05);
+        }
+
+        .team-inner {
+            width: 86%;
+            max-width: 1250px;
+            margin: auto;
+        }
+
+        /* DOSEN */
+
+        .advisor {
+            margin-top: 35px;
+
+            display: flex;
+            align-items: center;
+            gap: 18px;
+
+            padding: 23px 27px;
+
+            border-radius: 18px;
+
+            border: 1px solid rgba(56,189,248,.18);
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(14,165,233,.09),
+                    rgba(16,185,129,.04)
+                );
+        }
+
+        .advisor-icon {
+            width: 55px;
+            height: 55px;
+
+            flex-shrink: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 15px;
+
+            background: rgba(56,189,248,.11);
+
+            color: #38bdf8;
+
+            font-size: 20px;
+        }
+
+        .advisor small {
+            display: block;
+
+            margin-bottom: 6px;
+
+            color: #38bdf8;
+
+            font-size: 9px;
+            font-weight: 800;
+
+            letter-spacing: 1.5px;
+        }
+
+        .advisor strong {
+            font-size: 16px;
+        }
+
+        /* MEMBERS */
+
+        .team-list {
+            display: grid;
+
+            grid-template-columns:
+                repeat(5, minmax(190px,1fr));
+
+            gap: 14px;
+
+            margin-top: 22px;
+        }
+
+        .member {
+            position: relative;
+
+            min-height: 210px;
+
+            padding: 25px 20px;
+
+            overflow: hidden;
+
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 18px;
+
+            background: rgba(255,255,255,.035);
+
+            transition: .3s;
+        }
+
+        .member::before {
+            content: "";
+
+            position: absolute;
+
+            width: 100px;
+            height: 100px;
+
+            right: -45px;
+            top: -45px;
+
+            border-radius: 50%;
+
+            background: rgba(16,185,129,.09);
+        }
+
+        .member:hover {
+            transform: translateY(-8px);
+
+            border-color: rgba(52,211,153,.28);
+
+            box-shadow:
+                0 20px 45px rgba(0,0,0,.2);
+        }
+
+        .member-number {
+            color: #34d399;
+
+            font-size: 10px;
+            font-weight: 800;
+
+            letter-spacing: 1px;
+
+            margin-bottom: 17px;
+        }
+
+        .member-avatar {
+            width: 52px;
+            height: 52px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 15px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #0f766e,
+                    #064e3b
+                );
+
+            color: #d1fae5;
+
+            margin-bottom: 18px;
+
+            box-shadow:
+                0 8px 20px rgba(16,185,129,.12);
+        }
+
+        .member h3 {
+            font-size: 14px;
+
+            line-height: 1.4;
+
+            margin-bottom: 8px;
+        }
+
+        .member .role {
+            display: block;
+
+            color: #64748b;
+
+            font-size: 10px;
+
+            margin-bottom: 5px;
+        }
+
+        .member .nim {
+            display: inline-block;
+
+            margin-top: 5px;
+
+            padding: 5px 8px;
+
+            border-radius: 6px;
+
+            background: rgba(56,189,248,.07);
+
+            color: #7dd3fc;
+
+            font-size: 9px;
+            font-weight: 600;
+
+            letter-spacing: .4px;
+        }
+
+        /* =========================================================
+           PURPOSE
+        ========================================================= */
+
+        .purpose-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(3,1fr);
+
+            gap: 16px;
+
+            margin-top: 38px;
+        }
+
+        .purpose-card {
+            padding: 27px;
+
+            border-radius: 18px;
+
+            border: 1px solid rgba(255,255,255,.08);
+
+            background: rgba(255,255,255,.035);
+
+            transition: .25s;
+        }
+
+        .purpose-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(52,211,153,.22);
+        }
+
+        .purpose-number {
+            color: #34d399;
+
+            font-size: 10px;
+            font-weight: 800;
+
+            margin-bottom: 18px;
+        }
+
+        .purpose-card i {
+            color: #38bdf8;
+
+            font-size: 20px;
+
+            margin-bottom: 15px;
+        }
+
+        .purpose-card h3 {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .purpose-card p {
+            color: #8997a9;
+
+            font-size: 11px;
+            line-height: 1.8;
+        }
+
+        /* =========================================================
+           CTA
+        ========================================================= */
+
+        .cta {
+            width: 86%;
+            max-width: 1250px;
+
+            margin: 100px auto;
+
+            padding: 65px 30px;
+
+            text-align: center;
+
+            position: relative;
+            overflow: hidden;
+
+            border-radius: 28px;
+
+            border: 1px solid rgba(16,185,129,.18);
+
+            background:
+                radial-gradient(
+                    circle at 50% 0%,
+                    rgba(16,185,129,.18),
+                    transparent 55%
+                ),
+                rgba(255,255,255,.035);
+        }
+
+        .cta::before {
+            content: "";
+
+            position: absolute;
+
+            width: 300px;
+            height: 300px;
+
+            left: -150px;
+            bottom: -200px;
+
+            border-radius: 50%;
+
+            background: rgba(14,165,233,.10);
+
+            filter: blur(50px);
+        }
+
+        .cta h2 {
+            font-size: 34px;
+
+            letter-spacing: -1px;
+
+            margin-bottom: 11px;
+        }
+
+        .cta p {
+            color: #8997a9;
+
+            font-size: 12px;
+            line-height: 1.8;
+
+            margin-bottom: 25px;
+        }
+
+        /* =========================================================
+           FOOTER
+        ========================================================= */
+
+        footer {
+            padding: 30px 7%;
+
+            border-top: 1px solid rgba(255,255,255,.06);
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 20px;
+
+            color: #64748b;
+
+            font-size: 10px;
+        }
+
+        footer strong {
+            display: block;
+
+            color: #cbd5e1;
+
+            margin-bottom: 4px;
+        }
+
+        /* =========================================================
+           SCROLL TOP
+        ========================================================= */
+
+        .scroll-top {
+            position: fixed;
+
+            right: 22px;
+            bottom: 22px;
+
+            width: 42px;
+            height: 42px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border: 1px solid rgba(255,255,255,.1);
+            border-radius: 12px;
+
+            background: rgba(4,12,22,.85);
+
+            color: #94a3b8;
+
+            cursor: pointer;
+
+            z-index: 999;
+
+            backdrop-filter: blur(12px);
+
+            transition: .25s;
+        }
+
+        .scroll-top:hover {
+            color: white;
+            background: #10b981;
+            transform: translateY(-3px);
+        }
+
+        /* =========================================================
+           RESPONSIVE
+        ========================================================= */
+
+        @media (max-width: 1100px) {
+
+            .hero {
+                grid-template-columns: 1fr;
+                padding-top: 65px;
+            }
+
+            .hero-content {
+                text-align: center;
+            }
+
+            .hero-description {
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .hero-buttons {
+                justify-content: center;
+            }
+
+            .hero-map {
+                height: 400px;
+            }
+
+            .team-list {
+                grid-template-columns:
+                    repeat(3,1fr);
+            }
+        }
+
+        @media (max-width: 850px) {
+
+            .nav-menu a:not(.nav-webgis) {
+                display: none;
+            }
+
+            .quick-info {
+                grid-template-columns: 1fr;
+            }
+
+            .about-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .purpose-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .team-list {
+                grid-template-columns:
+                    repeat(2,1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+
+            .navbar {
+                padding: 0 5%;
+            }
+
+            .brand-text strong {
+                font-size: 12px;
+            }
+
+            .hero,
+            .quick-info,
+            .cta {
+                width: 90%;
+            }
+
+            .hero {
+                padding-top: 50px;
+            }
+
+            .hero h1 {
+                font-size: 43px;
+                letter-spacing: -2px;
+            }
+
+            .hero-description {
+                font-size: 13px;
+            }
+
+            .hero-map {
+                height: 320px;
+            }
+
+            .map-card {
+                height: 270px;
+                transform: none;
+            }
+
+            .p1 {
+                left: 25px;
+                top: 40px;
+                width: 90px;
+                height: 65px;
+            }
+
+            .p2 {
+                left: 120px;
+                top: 40px;
+                width: 100px;
+                height: 75px;
+            }
+
+            .p3 {
+                left: 65px;
+                top: 120px;
+                width: 95px;
+                height: 75px;
+            }
+
+            .p4 {
+                left: 165px;
+                top: 135px;
+                width: 95px;
+                height: 70px;
+            }
+
+            .p5 {
+                display: none;
+            }
+
+            .section {
+                width: 90%;
+                padding: 80px 0 40px;
+            }
+
+            .team-section {
+                padding: 80px 5%;
+            }
+
+            .team-inner {
+                width: 100%;
+            }
+
+            .team-list {
+                grid-template-columns: 1fr;
+            }
+
+            .advisor {
+                align-items: flex-start;
+            }
+
+            .section-title {
+                font-size: 29px;
+            }
+
+            .cta {
+                padding: 45px 20px;
+            }
+
+            .cta h2 {
+                font-size: 27px;
+            }
+
+            footer {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="grid-bg"></div>
+<div class="orb one"></div>
+<div class="orb two"></div>
+
+
+<!-- =========================================================
+     NAVBAR
+========================================================= -->
+
+<nav class="navbar">
+
+    <a href="#" class="brand">
+
+        <div class="brand-icon">
+            <i class="fa-solid fa-map-location-dot"></i>
+        </div>
+
+        <div class="brand-text">
+            <strong>SIDODADI LAND GIS</strong>
+            <span>WEBGIS PERTANAHAN</span>
+        </div>
+
+    </a>
+
+    <div class="nav-menu">
+
+        <a href="#tentang">
+            Tentang
+        </a>
+
+        <a href="#tujuan">
+            Tujuan
+        </a>
+
+        <a href="#anggota">
+            Anggota
+        </a>
+
+        <!-- ✅ DIPERBAIKI: mengarah ke webgis.html -->
+
+        <a href="webgis.html" class="nav-webgis">
+            <i class="fa-solid fa-map"></i>
+            Buka WebGIS
+        </a>
+
+    </div>
+
+</nav>
+
+
+<!-- =========================================================
+     HERO
+========================================================= -->
+
+<section class="hero">
+
+    <div class="hero-content">
+
+        <div class="badge">
+            <i class="fa-solid fa-satellite-dish"></i>
+            WEBGIS PEMETAAN PERTANAHAN
+        </div>
+
+        <h1>
+            Pemetaan
+            <span class="green">Bidang Tanah</span>
+            Desa Sidodadi
+        </h1>
+
+        <p class="hero-description">
+
+            Sistem Informasi Geografis berbasis web untuk
+            memvisualisasikan, mengidentifikasi, dan menyajikan
+            informasi bidang tanah Desa Sidodadi secara
+            interaktif dan informatif.
+
+        </p>
+
+        <div class="hero-buttons">
+
+            <!-- ✅ DIPERBAIKI: mengarah ke webgis.html -->
+
+            <a href="webgis.html" class="btn btn-primary">
+                <i class="fa-solid fa-map-location-dot"></i>
+                Buka WebGIS
+            </a>
+
+            <a href="#tentang" class="btn btn-secondary">
+                <i class="fa-solid fa-circle-info"></i>
+                Pelajari Proyek
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- VISUALISASI PETA -->
+
+    <div class="hero-map">
+
+        <div class="map-card">
+
+            <div class="map-grid"></div>
+
+            <div class="road"></div>
+
+            <div class="parcel p1"></div>
+            <div class="parcel p2"></div>
+            <div class="parcel p3"></div>
+            <div class="parcel p4"></div>
+            <div class="parcel p5"></div>
+
+            <div class="map-top">
+
+                <div class="live">
+                    <span class="live-dot"></span>
+                    WEBGIS INTERAKTIF
+                </div>
+
+                <div class="north">
+                    N
+                </div>
+
+            </div>
+
+            <div class="pin">
+                <i class="fa-solid fa-location-dot"></i>
+            </div>
+
+            <div class="map-bottom">
+
+                <div class="location-label">
+                    <i class="fa-solid fa-location-dot"></i>
+                    Desa Sidodadi · Pesawaran · Lampung
+                </div>
+
+                <div class="scale">
+                    DATA SPASIAL
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     QUICK INFO
+========================================================= -->
+
+<div class="quick-info">
+
+    <div class="quick-card">
+
+        <div class="quick-icon">
+            <i class="fa-solid fa-draw-polygon"></i>
+        </div>
+
+        <h3>
+            Data Spasial
+        </h3>
+
+        <p>
+            Menampilkan lokasi, bentuk, dan batas
+            bidang tanah secara digital.
+        </p>
+
+    </div>
+
+
+    <div class="quick-card">
+
+        <div class="quick-icon">
+            <i class="fa-solid fa-table"></i>
+        </div>
+
+        <h3>
+            Data Atribut
+        </h3>
+
+        <p>
+            Menyajikan informasi atribut bidang
+            tanah secara terstruktur.
+        </p>
+
+    </div>
+
+
+    <div class="quick-card">
+
+        <div class="quick-icon">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+
+        <h3>
+            Identifikasi Interaktif
+        </h3>
+
+        <p>
+            Memudahkan pengguna mencari dan melihat
+            informasi bidang tanah.
+        </p>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     TENTANG
+========================================================= -->
+
+<section class="section" id="tentang">
+
+    <span class="section-label">
+        TENTANG PROYEK
+    </span>
+
+    <h2 class="section-title">
+        Pemetaan Bidang Tanah
+    </h2>
+
+    <p class="section-description">
+
+        Pemetaan bidang tanah merupakan kegiatan untuk
+        memperoleh, mengelola, dan menyajikan informasi
+        spasial mengenai bidang-bidang tanah. Hasil pemetaan
+        kemudian divisualisasikan melalui WebGIS sehingga
+        informasi dapat ditampilkan dalam bentuk peta digital
+        yang mudah diakses dan dipahami.
+
+    </p>
+
+
+    <div class="about-grid">
+
+        <div class="about-card">
+
+            <h3>
+                <i class="fa-solid fa-map"></i>
+                Sistem Informasi Pertanahan
+            </h3>
+
+            <p>
+
+                WebGIS ini dikembangkan sebagai media
+                visualisasi data bidang tanah Desa Sidodadi.
+                Pengguna dapat melihat lokasi, batas,
+                serta informasi atribut bidang tanah
+                melalui peta interaktif.
+
+            </p>
+
+        </div>
+
+
+        <div class="about-card">
+
+            <h3>
+                <i class="fa-solid fa-layer-group"></i>
+                Informasi yang Disajikan
+            </h3>
+
+            <ul class="about-list">
+
+                <li>
+                    <i class="fa-solid fa-check"></i>
+                    Data spasial bidang tanah
+                </li>
+
+                <li>
+                    <i class="fa-solid fa-check"></i>
+                    Informasi atribut bidang
+                </li>
+
+                <li>
+                    <i class="fa-solid fa-check"></i>
+                    Visualisasi peta interaktif
+                </li>
+
+                <li>
+                    <i class="fa-solid fa-check"></i>
+                    Pencarian dan penyaringan data
+                </li>
+
+            </ul>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     TUJUAN
+========================================================= -->
+
+<section class="section" id="tujuan">
+
+    <span class="section-label">
+        TUJUAN
+    </span>
+
+    <h2 class="section-title">
+        Tujuan Pemetaan
+    </h2>
+
+    <p class="section-description">
+
+        Pemetaan bidang tanah dilakukan untuk menghasilkan
+        informasi spasial yang lebih terstruktur serta
+        mendukung penyajian informasi pertanahan secara
+        informatif dan mudah dipahami.
+
+    </p>
+
+
+    <div class="purpose-grid">
+
+        <div class="purpose-card">
+
+            <div class="purpose-number">
+                01 — SPASIAL
+            </div>
+
+            <i class="fa-solid fa-location-dot"></i>
+
+            <h3>
+                Visualisasi Spasial
+            </h3>
+
+            <p>
+                Menampilkan persebaran dan batas bidang
+                tanah Desa Sidodadi dalam bentuk peta
+                digital yang interaktif.
+            </p>
+
+        </div>
+
+
+        <div class="purpose-card">
+
+            <div class="purpose-number">
+                02 — DATA
+            </div>
+
+            <i class="fa-solid fa-database"></i>
+
+            <h3>
+                Pengelolaan Informasi
+            </h3>
+
+            <p>
+                Menyediakan informasi atribut bidang
+                tanah yang dapat dilihat dan ditelusuri
+                melalui WebGIS.
+            </p>
+
+        </div>
+
+
+        <div class="purpose-card">
+
+            <div class="purpose-number">
+                03 — WEBGIS
+            </div>
+
+            <i class="fa-solid fa-globe"></i>
+
+            <h3>
+                Akses Interaktif
+            </h3>
+
+            <p>
+                Memudahkan pengguna dalam mengeksplorasi
+                data spasial dan informasi bidang tanah
+                melalui platform berbasis web.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     ANGGOTA KELOMPOK
+========================================================= -->
+
+<section class="team-section" id="anggota">
+
+    <div class="team-inner">
+
+        <span class="section-label">
+            TIM KERJA
+        </span>
+
+        <h2 class="section-title">
+            Anggota Kelompok
+        </h2>
+
+        <p class="section-description">
+
+            Pemetaan dan pengembangan WebGIS ini merupakan
+            hasil kerja kelompok dalam kegiatan Kemah Kerja.
+
+        </p>
+
+
+        <!-- =====================================================
+             DOSEN PEMBIMBING
+        ====================================================== -->
+
+        <div class="advisor">
+
+            <div class="advisor-icon">
+                <i class="fa-solid fa-user-tie"></i>
+            </div>
+
+            <div>
+
+                <small>
+                    DOSEN PEMBIMBING KEMAH KERJA
+                </small>
+
+                <!-- GANTI NAMA DOSEN DI SINI -->
+
+                <strong>
+                    NAMA DOSEN PEMBIMBING
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             ANGGOTA
+        ====================================================== -->
+
+        <div class="team-list">
+
+
+            <!-- ANGGOTA 01 -->
+
+            <div class="member">
+
+                <div class="member-number">
+                    01
+                </div>
+
+                <div class="member-avatar">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+
+                <span class="role">
+                    KETUA KELOMPOK
+                </span>
+
+                <h3>
+                    Galih Noto Legowo
+                </h3>
+
+                <!-- GANTI NIM -->
+
+                <span class="nim">
+                    NIM: ISI NIM
+                </span>
+
+            </div>
+
+
+            <!-- ANGGOTA 02 -->
+
+            <div class="member">
+
+                <div class="member-number">
+                    02
+                </div>
+
+                <div class="member-avatar">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+
+                <span class="role">
+                    ANGGOTA KELOMPOK
+                </span>
+
+                <h3>
+                    Fery Moses Hutagaol
+                </h3>
+
+                <!-- GANTI NIM -->
+
+                <span class="nim">
+                    NIM: ISI NIM
+                </span>
+
+            </div>
+
+
+            <!-- ANGGOTA 03 -->
+
+            <div class="member">
+
+                <div class="member-number">
+                    03
+                </div>
+
+                <div class="member-avatar">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+
+                <span class="role">
+                    ANGGOTA KELOMPOK
+                </span>
+
+                <h3>
+                    Kleovina Marlia
+                </h3>
+
+                <!-- NIM SUDAH DIISI -->
+
+                <span class="nim">
+                    NIM: 123230040
+                </span>
+
+            </div>
+
+
+            <!-- ANGGOTA 04 -->
+
+            <div class="member">
+
+                <div class="member-number">
+                    04
+                </div>
+
+                <div class="member-avatar">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+
+                <span class="role">
+                    ANGGOTA KELOMPOK
+                </span>
+
+                <h3>
+                    Leila Oktavia Hasugian
+                </h3>
+
+                <!-- GANTI NIM -->
+
+                <span class="nim">
+                    NIM: ISI NIM
+                </span>
+
+            </div>
+
+
+            <!-- ANGGOTA 05 -->
+
+            <div class="member">
+
+                <div class="member-number">
+                    05
+                </div>
+
+                <div class="member-avatar">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+
+                <span class="role">
+                    ANGGOTA KELOMPOK
+                </span>
+
+                <h3>
+                    Muhammad Rafi Saputra
+                </h3>
+
+                <!-- GANTI NIM -->
+
+                <span class="nim">
+                    NIM: ISI NIM
+                </span>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     CTA WEBGIS
+========================================================= -->
+
+<section class="cta">
+
+    <span class="section-label">
+        WEBGIS INTERAKTIF
+    </span>
+
+    <h2>
+        Siap Menjelajahi Peta?
+    </h2>
+
+    <p>
+
+        Akses WebGIS untuk melihat peta bidang tanah,
+        informasi atribut, pencarian data, dan berbagai
+        fitur pemetaan Desa Sidodadi.
+
+    </p>
+
+    <!-- ✅ DIPERBAIKI: mengarah ke webgis.html -->
+
+    <a href="webgis.html" class="btn btn-primary">
+
+        <i class="fa-solid fa-map-location-dot"></i>
+
+        Masuk ke WebGIS
+
+        <i class="fa-solid fa-arrow-right"></i>
+
+    </a>
+
+</section>
+
+
+<!-- =========================================================
+     FOOTER
+========================================================= -->
+
+<footer>
+
+    <div>
+
+        <strong>
+            SIDODADI LAND GIS
+        </strong>
+
+        Sistem Informasi Pemetaan Bidang Tanah
+
+    </div>
+
+    <div>
+
+        © 2026 · Desa Sidodadi · Pesawaran · Lampung
+
+    </div>
+
+</footer>
+
+
+<!-- =========================================================
+     SCROLL TOP
+========================================================= -->
+
+<button
+    class="scroll-top"
+    onclick="window.scrollTo({top:0,behavior:'smooth'})"
+    title="Kembali ke atas"
+>
+    <i class="fa-solid fa-arrow-up"></i>
+</button>
+
+
+</body>
+</html>

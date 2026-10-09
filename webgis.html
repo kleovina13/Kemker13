@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SIDODADI LAND GIS | Sistem Informasi Pertanahan</title>
+
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <!-- Font Awesome -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+
+    <!-- Leaflet -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+    <!-- Leaflet Draw -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"
+    >
+
+    <!-- ✅ DIPERBAIKI: CSS sekarang mengarah ke assets/css/style.css -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+
+<!-- =========================================================
+     SIDEBAR
+========================================================= -->
+
+<aside class="sidebar" id="sidebar">
+
+    <div class="sidebar-header">
+
+        <div class="brand-logo">
+            <i class="fa-solid fa-map-location-dot"></i>
+        </div>
+
+        <div class="brand-text">
+            <strong>SIDODADI</strong>
+            <span>LAND GIS</span>
+        </div>
+
+        <button
+            class="close-sidebar"
+            id="closeSidebar"
+            title="Tutup menu"
+        >
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+    </div>
+
+
+    <div class="sidebar-content">
+
+        <!-- Navigation -->
+
+        <div class="menu-label">
+            NAVIGASI
+        </div>
+
+        <a href="#dashboard" class="nav-link active">
+            <i class="fa-solid fa-chart-pie"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <a href="#map-section" class="nav-link">
+            <i class="fa-solid fa-map"></i>
+            <span>Peta Bidang</span>
+        </a>
+
+        <a href="#table-section" class="nav-link">
+            <i class="fa-solid fa-table"></i>
+            <span>Data Atribut</span>
+        </a>
+
+
+        <!-- Layer -->
+
+        <div class="menu-label">
+            LAYER
+        </div>
+
+        <div class="layer-box">
+
+            <label class="layer-item">
+
+                <span class="layer-left">
+                    <span class="layer-symbol parcel-symbol"></span>
+                    <span>Bidang Tanah</span>
+                </span>
+
+                <input
+                    type="checkbox"
+                    id="parcelToggle"
+                    checked
+                >
+
+                <span class="switch"></span>
+
+            </label>
+
+        </div>
+
+
+        <!-- Tools -->
+
+        <div class="menu-label">
+            TOOLS
+        </div>
+
+        <button class="side-action" id="fitBtn">
+            <i class="fa-solid fa-expand"></i>
+            <span>Zoom Semua Bidang</span>
+        </button>
+
+        <button class="side-action" id="locateBtn">
+            <i class="fa-solid fa-location-crosshairs"></i>
+            <span>Lokasi Saya</span>
+        </button>
+
+        <button class="side-action" id="homeBtn">
+            <i class="fa-solid fa-house"></i>
+            <span>Tampilan Awal</span>
+        </button>
+
+        <button class="side-action" id="fullscreenBtn">
+            <i class="fa-solid fa-expand"></i>
+            <span>Layar Penuh</span>
+        </button>
+
+        <button class="side-action" id="printBtn">
+            <i class="fa-solid fa-print"></i>
+            <span>Cetak Peta</span>
+        </button>
+
+
+        <!-- Data -->
+
+        <div class="menu-label">
+            DATA
+        </div>
+
+        <button class="side-action" id="uploadBtn">
+            <i class="fa-solid fa-file-import"></i>
+            <span>Import GeoJSON</span>
+        </button>
+
+        <button class="side-action" id="exportBtn">
+            <i class="fa-solid fa-file-export"></i>
+            <span>Export GeoJSON</span>
+        </button>
+
+        <button class="side-action" id="tableExportBtn">
+            <i class="fa-solid fa-file-csv"></i>
+            <span>Export CSV</span>
+        </button>
+
+        <input
+            type="file"
+            id="geojsonInput"
+            accept=".geojson,.json"
+            hidden
+        >
+
+
+        <!-- Appearance -->
+
+        <div class="menu-label">
+            TAMPILAN
+        </div>
+
+        <button class="side-action" id="darkBtn">
+            <i class="fa-solid fa-moon"></i>
+            <span>Mode Gelap</span>
+        </button>
+
+
+        <div class="sidebar-footer">
+
+            <div class="status-dot"></div>
+
+            <div>
+                <strong>GIS System Online</strong>
+                <span>Desa Sidodadi</span>
+            </div>
+
+        </div>
+
+    </div>
+
+</aside>
+
+
+<!-- =========================================================
+     MAIN
+========================================================= -->
+
+<main class="main">
+
+    <!-- TOPBAR -->
+
+    <header class="topbar">
+
+        <button
+            class="menu-btn"
+            id="menuBtn"
+            title="Menu"
+        >
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <div class="topbar-title">
+
+            <span class="eyebrow">
+                SISTEM INFORMASI GEOGRAFIS
+            </span>
+
+            <h1>
+                SIDODADI LAND GIS
+            </h1>
+
+        </div>
+
+
+        <div class="topbar-actions">
+
+            <button
+                class="icon-btn"
+                id="themeBtn"
+                title="Mode gelap"
+            >
+                <i class="fa-solid fa-moon"></i>
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- =====================================================
+         DASHBOARD
+    ====================================================== -->
+
+    <section class="dashboard-section" id="dashboard">
+
+        <div class="hero">
+
+            <div class="hero-content">
+
+                <div class="hero-badge">
+                    <i class="fa-solid fa-satellite-dish"></i>
+                    WEBGIS PERTANAHAN
+                </div>
+
+                <h2>
+                    Sistem Informasi<br>
+                    <span>Pemetaan Bidang Tanah</span>
+                </h2>
+
+                <p>
+                    Platform WebGIS untuk memvisualisasikan,
+                    mencari, memfilter, dan menganalisis data
+                    bidang tanah Desa Sidodadi secara interaktif.
+                </p>
+
+                <button
+                    class="primary-btn"
+                    id="heroMapBtn"
+                >
+                    <i class="fa-solid fa-map"></i>
+                    Buka Peta
+                </button>
+
+            </div>
+
+            <div class="hero-decoration">
+
+                <div class="orb orb-one"></div>
+                <div class="orb orb-two"></div>
+
+                <i class="fa-solid fa-map-location-dot"></i>
+
+            </div>
+
+        </div>
+
+
+        <!-- STAT CARDS -->
+
+        <div class="stats-grid">
+
+            <div class="stat-card">
+
+                <div class="stat-icon blue">
+                    <i class="fa-solid fa-draw-polygon"></i>
+                </div>
+
+                <div class="stat-content">
+
+                    <span>Total Bidang</span>
+
+                    <strong id="totalFields">
+                        0
+                    </strong>
+
+                    <small>
+                        bidang terdata
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-icon green">
+                    <i class="fa-solid fa-ruler-combined"></i>
+                </div>
+
+                <div class="stat-content">
+
+                    <span>Total Luas</span>
+
+                    <strong id="totalArea">
+                        0 m²
+                    </strong>
+
+                    <small>
+                        luas bidang
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-icon orange">
+                    <i class="fa-solid fa-list"></i>
+                </div>
+
+                <div class="stat-content">
+
+                    <span>Atribut</span>
+
+                    <strong id="totalAttributes">
+                        0
+                    </strong>
+
+                    <small>
+                        kolom informasi
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-icon purple">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+
+                <div class="stat-content">
+
+                    <span>Status Layer</span>
+
+                    <strong id="layerStatus">
+                        Aktif
+                    </strong>
+
+                    <small>
+                        sistem pemetaan
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         MAP SECTION
+    ====================================================== -->
+
+    <section class="content-section" id="map-section">
+
+        <div class="section-heading">
+
+            <div>
+
+                <span class="section-label">
+                    PEMETAAN
+                </span>
+
+                <h2>
+                    Peta Interaktif Bidang Tanah
+                </h2>
+
+                <p>
+                    Klik bidang untuk melihat informasi atribut.
+                </p>
+
+            </div>
+
+            <div class="map-counter">
+
+                <i class="fa-solid fa-layer-group"></i>
+
+                <span id="featureCount">
+                    0 bidang
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="map-layout">
+
+            <!-- FILTER PANEL -->
+
+            <aside class="filter-panel">
+
+                <div class="filter-header">
+
+                    <div>
+
+                        <span class="section-label">
+                            FILTER
+                        </span>
+
+                        <h3>
+                            Pencarian Data
+                        </h3>
+
+                    </div>
+
+                    <button
+                        id="clearFilters"
+                        class="mini-btn"
+                        title="Reset filter"
+                    >
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+
+                </div>
+
+
+                <!-- SEARCH -->
+
+                <div class="search-box">
+
+                    <i class="fa-solid fa-magnifying-glass"></i>
+
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Cari data bidang..."
+                    >
+
+                    <button
+                        id="clearSearch"
+                        title="Hapus pencarian"
+                    >
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+
+                </div>
+
+
+                <!-- DYNAMIC FILTER -->
+
+                <div
+                    class="dynamic-filters"
+                    id="dynamicFilters"
+                >
+
+                    <div class="filter-loading">
+
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+
+                        <span>
+                            Menyiapkan filter...
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    class="filter-apply-btn"
+                    id="applyFilters"
+                >
+
+                    <i class="fa-solid fa-filter"></i>
+
+                    Terapkan Filter
+
+                </button>
+
+
+                <button
+                    class="filter-reset-btn"
+                    id="resetFilters"
+                >
+
+                    <i class="fa-solid fa-broom"></i>
+
+                    Reset Semua Filter
+
+                </button>
+
+
+                <!-- BASEMAP -->
+
+                <div class="control-group">
+
+                    <label>
+                        <i class="fa-solid fa-map"></i>
+                        Basemap
+                    </label>
+
+                    <select id="basemapSelect">
+
+                        <option value="osm">
+                            OpenStreetMap
+                        </option>
+
+                        <option value="satellite">
+                            Satellite
+                        </option>
+
+                        <option value="topo">
+                            Topographic
+                        </option>
+
+                        <option value="dark">
+                            Dark Map
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- MEASURE -->
+
+                <div class="measure-box">
+
+                    <div class="measure-title">
+
+                        <i class="fa-solid fa-ruler"></i>
+
+                        <span>
+                            Pengukuran
+                        </span>
+
+                    </div>
+
+                    <p>
+                        Gunakan toolbar di peta untuk
+                        mengukur luas atau jarak.
+                    </p>
+
+                    <button
+                        class="clear-measure"
+                        id="clearMeasureBtn"
+                    >
+                        <i class="fa-solid fa-trash"></i>
+                        Hapus Pengukuran
+                    </button>
+
+                </div>
+
+            </aside>
+
+
+            <!-- MAP -->
+
+            <div class="map-wrapper">
+
+                <div id="map"></div>
+
+                <div class="map-overlay-top">
+
+                    <div class="map-status">
+
+                        <span class="live-dot"></span>
+
+                        <span>
+                            LIVE MAP
+                        </span>
+
+                    </div>
+
+                    <div
+                        class="cursor-coords"
+                        id="cursorCoords"
+                    >
+                        Koordinat: -
+                    </div>
+
+                </div>
+
+                <div class="map-overlay-bottom">
+
+                    <div class="map-info-chip">
+
+                        <i class="fa-solid fa-circle-info"></i>
+
+                        <span>
+                            Klik bidang untuk detail
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         TABLE
+    ====================================================== -->
+
+    <section
+        class="content-section"
+        id="table-section"
+    >
+
+        <div class="section-heading">
+
+            <div>
+
+                <span class="section-label">
+                    DATABASE
+                </span>
+
+                <h2>
+                    Data Atribut Bidang Tanah
+                </h2>
+
+                <p>
+                    Informasi atribut dari GeoJSON yang dimuat.
+                </p>
+
+            </div>
+
+            <div class="table-summary" id="tableSummary">
+                0 data
+            </div>
+
+        </div>
+
+
+        <div class="table-card">
+
+            <div class="table-toolbar">
+
+                <div class="table-title">
+
+                    <i class="fa-solid fa-database"></i>
+
+                    <span>
+                        Daftar Bidang Tanah
+                    </span>
+
+                </div>
+
+                <button
+                    class="outline-btn"
+                    id="tableExportBtn2"
+                >
+
+                    <i class="fa-solid fa-download"></i>
+
+                    Export CSV
+
+                </button>
+
+            </div>
+
+
+            <div class="table-scroll">
+
+                <table>
+
+                    <thead id="fieldTableHead">
+                    </thead>
+
+                    <tbody id="fieldTable">
+
+                        <tr>
+
+                            <td
+                                colspan="5"
+                                class="empty-cell"
+                            >
+
+                                <i class="fa-solid fa-database"></i>
+
+                                <span>
+                                    Data belum dimuat.
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         ABOUT
+    ====================================================== -->
+
+    <section class="about-section">
+
+        <div class="about-card">
+
+            <div class="about-icon">
+
+                <i class="fa-solid fa-map-location-dot"></i>
+
+            </div>
+
+            <div>
+
+                <span class="section-label">
+                    TENTANG SISTEM
+                </span>
+
+                <h2>
+                    SIDODADI LAND GIS
+                </h2>
+
+                <p>
+                    Sistem Informasi Geografis berbasis web
+                    yang digunakan untuk menampilkan data
+                    bidang tanah secara interaktif serta
+                    mendukung pencarian, penyaringan,
+                    identifikasi dan pengelolaan data spasial.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
+
+    <footer>
+
+        <div>
+
+            <strong>
+                SIDODADI LAND GIS
+            </strong>
+
+            <span>
+                Sistem Informasi Pertanahan
+            </span>
+
+        </div>
+
+        <div>
+
+            © <span id="year"></span>
+            Desa Sidodadi · Pesawaran · Lampung
+
+        </div>
+
+    </footer>
+
+</main>
+
+
+<!-- =========================================================
+     TOAST
+========================================================= -->
+
+<div
+    class="toast"
+    id="toast"
+>
+
+    <div class="toast-icon">
+
+        <i class="fa-solid fa-circle-info"></i>
+
+    </div>
+
+    <div class="toast-content">
+
+        <strong>
+            Informasi
+        </strong>
+
+        <span id="toastMessage">
+            Sistem siap digunakan.
+        </span>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     LIBRARIES
+========================================================= -->
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+
+
+<!-- APP -->
+<script src="js/app.js"></script>
+
+</body>
+</html>
